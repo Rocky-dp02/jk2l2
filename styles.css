@@ -5,6 +5,10 @@
     --input-background: #1e1e1e;
     --highlight-color: #50fa7b;
     --border-color: #555;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --glow-color: rgba(80, 250, 123, 0.15);
 }
 
 * {
@@ -15,7 +19,7 @@
 
 body {
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
-    background: var(--background-color);
+    background: linear-gradient(135deg, #0a0a0a 0%, #0c0c0c 50%, #0e0e0e 100%);
     min-height: 100vh;
     padding: 0;
     margin: 0;
@@ -23,9 +27,9 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px;
 }
 
 /* Login Terminal Styles */
@@ -41,20 +45,30 @@ body {
 }
 
 .terminal-window {
-    background: var(--input-background);
-    border-radius: 8px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, var(--input-background) 0%, rgba(20, 20, 20, 0.95) 100%);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(80, 250, 123, 0.1);
     overflow: hidden;
     width: 100%;
     border: 1px solid var(--border-color);
 }
 
 .terminal-header {
-    background: var(--button-background);
-    padding: 10px 15px;
+    background: linear-gradient(135deg, var(--button-background) 0%, rgba(35, 35, 35, 0.9) 100%);
+    padding: 12px 18px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
+    position: relative;
+}
+.terminal-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--highlight-color), transparent);
 }
 
 .terminal-buttons {
@@ -134,8 +148,14 @@ body {
     font-size: 14px;
     outline: none;
     caret-color: var(--highlight-color);
-    padding: 8px;
-    border-radius: 3px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.terminal-input:focus {
+    border-color: var(--highlight-color);
+    box-shadow: 0 0 0 2px rgba(80, 250, 123, 0.1);
 }
 
 .terminal-input::placeholder {
@@ -146,25 +166,59 @@ body {
     background: var(--button-background);
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    padding: 10px 30px;
+    padding: 12px 36px;
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
-    transition: all 0.3s;
-    border-radius: 3px;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: var(--highlight-color);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    z-index: 0;
+}
+
+.terminal-button:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .terminal-button:hover {
-    background: var(--highlight-color);
     color: var(--background-color);
+    border-color: var(--highlight-color);
+    box-shadow: 0 4px 16px rgba(80, 250, 123, 0.3);
+    transform: translateY(-2px);
+}
+
+.terminal-button span {
+    position: relative;
+    z-index: 1;
 }
 
 .terminal-button:disabled {
     background: var(--border-color);
     cursor: not-allowed;
     opacity: 0.5;
+    transform: none;
+}
+
+.terminal-button:disabled::before {
+    display: none;
 }
 
 .terminal-message {
@@ -191,10 +245,10 @@ body {
 /* Dashboard Styles */
 .dashboard-container {
     max-width: 100%;
-    background: var(--input-background);
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.6) 100%);
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
 }
 
@@ -202,33 +256,80 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 40px;
+    padding: 25px 30px;
+    background: linear-gradient(135deg, var(--input-background) 0%, rgba(30, 30, 30, 0.6) 100%);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--highlight-color), transparent);
 }
 
 .dashboard-header h1 {
     color: var(--highlight-color);
-    font-size: 28px;
+    font-size: 32px;
     margin: 0;
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(80, 250, 123, 0.3);
 }
 
 .logout-btn {
     background: var(--button-background);
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    padding: 10px 24px;
+    padding: 12px 28px;
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 14px;
     cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.3s;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: #ff5555;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    z-index: 0;
+}
+
+.logout-btn:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .logout-btn:hover {
-    background: #ff5555;
     color: var(--background-color);
+    border-color: #ff5555;
+    box-shadow: 0 4px 16px rgba(255, 85, 85, 0.3);
+    transform: translateY(-2px);
+}
+
+.logout-btn span {
+    position: relative;
+    z-index: 1;
 }
 
 /* Main Menu Styles */
@@ -242,24 +343,55 @@ body {
     background: var(--button-background);
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    padding: 12px 30px;
+    padding: 14px 32px;
     font-size: 16px;
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     cursor: pointer;
     transition: all 0.3s ease;
-    border-radius: 3px;
-    font-weight: 600;
+    border-radius: 6px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--highlight-color);
+    transform: translateX(-4px);
+    transition: transform 0.3s ease;
+}
+
+.menu-item:hover::before {
+    transform: translateX(0);
 }
 
 .menu-item:hover {
-    background: var(--highlight-color);
-    color: var(--background-color);
+    border-color: var(--highlight-color);
+    background-color: var(--input-background);
+    color: var(--highlight-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(80, 250, 123, 0.2);
+}
+
+.menu-item:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(80, 250, 123, 0.3);
 }
 
 .menu-item.active {
-    background: var(--highlight-color);
-    color: var(--background-color);
-    font-weight: bold;
+    border-color: var(--highlight-color);
+    background-color: var(--input-background);
+    color: var(--highlight-color);
+    box-shadow: 0 2px 8px rgba(80, 250, 123, 0.2);
+}
+
+.menu-item.active::before {
+    transform: translateX(0);
 }
 
 /* Filter Section */
@@ -276,45 +408,77 @@ body {
 .filter-input {
     flex: 1;
     min-width: 200px;
-    padding: 10px 15px;
+    padding: 12px 16px;
     background: var(--input-background);
     border: 1px solid var(--border-color);
     color: var(--text-color);
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 14px;
-    border-radius: 3px;
+    border-radius: 8px;
     outline: none;
+    transition: all 0.3s ease;
 }
 
 .filter-input:focus {
     border-color: var(--highlight-color);
-    box-shadow: 0 0 5px rgba(80, 250, 123, 0.3);
+    box-shadow: 0 0 0 2px rgba(80, 250, 123, 0.1);
 }
 
 .filter-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: var(--button-background);
     color: var(--text-color);
     border: 1px solid var(--border-color);
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.3s;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 .filter-btn:hover {
-    background: var(--highlight-color);
-    color: var(--background-color);
+    background: var(--input-background);
+    border-color: var(--highlight-color);
+    color: var(--highlight-color);
+    box-shadow: 0 4px 16px rgba(80, 250, 123, 0.2);
+    transform: translateY(-2px);
+}
+
+/* General Button Styles */
+.btn {
+    padding: 12px 24px;
+    background: var(--button-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+    background: var(--input-background);
+    border-color: var(--highlight-color);
+    color: var(--highlight-color);
+    box-shadow: 0 4px 16px rgba(80, 250, 123, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
 }
 
 /* Table Styles */
 .table-wrapper {
     overflow-x: auto;
-    background: var(--input-background);
-    border-radius: 8px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.6) 100%);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
 }
 
@@ -401,5 +565,51 @@ body {
     #employeeTable th,
     #employeeTable td {
         padding: 8px 4px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from { 
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
     }
 }

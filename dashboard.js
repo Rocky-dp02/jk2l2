@@ -61,6 +61,12 @@ schedulingMenu.addEventListener('click', function() {
     window.location.href = 'scheduling.html';
 });
 
+// Employee Menu Handler
+const employeeMenu = document.getElementById('employeeMenu');
+employeeMenu.addEventListener('click', function() {
+    window.location.href = 'employees.html';
+});
+
 // Render Table Function
 function renderTable(data) {
     if (!data || !data.headers || !data.employees) {
