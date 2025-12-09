@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduling Dashboard</title>
+    <style>
+        :root {
+            --background-color: #0c0c0c;
+            --text-color: #cccccc;
+            --button-background: #2a2a2a;
+            --input-background: #1e1e1e;
+            --highlight-color: #50fa7b;
+            --border-color: #555;
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+            font-size: 16px;
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        h1 {
+            color: var(--highlight-color);
+            margin: 0;
+            font-size: 28px;
+        }
+        .home-btn {
+            background-color: var(--button-background);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 24px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .home-btn:hover {
+            background-color: var(--highlight-color);
+            color: var(--background-color);
+        }
+        #date-picker-container {
+            background-color: var(--input-background);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+        #date-picker-container label {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        #date-picker-container input[type="date"], #date-picker-container button, #date-picker-container select {
+            background-color: var(--button-background);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            font-family: inherit;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        #date-picker-container button {
+            cursor: pointer;
+            background-color: var(--button-background);
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        #date-picker-container button:hover {
+            background-color: var(--highlight-color);
+            color: var(--background-color);
+        }
+        #fetchSchedule {
+            background-color: var(--highlight-color) !important;
+            color: var(--background-color) !important;
+            font-weight: bold;
+        }
+        #fetchSchedule:hover {
+            opacity: 0.9;
+        }
+        #exportCsv {
+            background-color: #4a9eff !important;
+        }
+        #exportCsv:hover {
+            background-color: #3a8eef !important;
+            color: var(--background-color) !important;
+        }
+        #dashboard-container {
+            background-color: var(--input-background);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            min-height: 400px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: var(--button-background);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            color: var(--highlight-color);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        .schedule-cell {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 500;
+        }
+        .schedule-cell:hover {
+            background-color: var(--button-background);
+            border: 1px solid var(--highlight-color);
+        }
+        tbody tr:hover {
+            background-color: rgba(80, 250, 123, 0.05);
+        }
+        .filter-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-btn {
+            cursor: pointer;
+            font-size: 1.2em;
+            padding-left: 10px;
+            color: var(--text-color);
+        }
+        .filter-btn.active {
+            color: var(--highlight-color);
+        }
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 10;
+            min-width: 250px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .filter-dropdown-search {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: var(--input-background);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 3px;
+        }
+        .filter-dropdown-list {
+            max-height: 200px;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .filter-dropdown-list li {
+            padding: 5px;
+            white-space: nowrap;
+        }
+         .filter-dropdown-list label {
+            display: flex;
+            align-items: center;
+        }
+        .filter-dropdown-actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+        .filter-dropdown-actions button {
+            background-color: var(--input-background);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background-color: var(--input-background);
+            margin: 10% auto;
+            padding: 30px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .modal-content h2 {
+            color: var(--highlight-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        .modal-content p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .modal-content label {
+            color: var(--text-color);
+            font-weight: 600;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        .modal-content button {
+            background-color: var(--highlight-color);
+            color: var(--background-color);
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .modal-content button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--highlight-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #shift-dropdown {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background-color: var(--button-background);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        #shift-dropdown:focus {
+            border-color: var(--highlight-color);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scheduling Dashboard</h1>
+            <button id="homeBtn" class="home-btn">← Home</button>
+        </div>
+
+        <div id="date-picker-container">
+        <label for="dateFrom">From:</label>
+        <input type="date" id="dateFrom">
+        <label for="dateTo">To:</label>
+        <input type="date" id="dateTo">
+        <button id="fetchSchedule">Fetch Schedule</button>
+        <button id="exportCsv">Export to CSV</button>
+        <button id="saveView">Save View</button>
+        <select id="savedViews"></select>
+        <button id="loadView">Load View</button>
+        <button id="deleteView">Delete View</button>
+    </div>
+
+    <div id="dashboard-container">
+        <p style="text-align: center; color: var(--text-color); padding: 40px;">Select a date range and click "Fetch Schedule" to view employee schedules.</p>
+    </div>
+
+    </div>
+
+    <!-- The Modal -->
+    <div id="scheduleModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Update Shift</h2>
+        <p><strong>Name:</strong> <span id="modal-employee-name"></span></p>
+        <p><strong>ID:</strong> <span id="modal-employee-id"></span></p>
+        <label for="shift-dropdown"><strong>Shift:</strong></label>
+        <select id="shift-dropdown">
+            <option value="">Loading shifts...</option>
+        </select>
+        <button id="submit-shift-update">Submit</button>
+      </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Hardcoded credentials for authentication
+            const CREDENTIALS = {
+                username: "superadmin",
+                password: "cpSb4pBnsqCWIX3"
+            };
+            const API_URL = "https://scheduling-api.s2s.ph/api/admin/login";
+            
+            let token = null;
+            
+            // Authenticate to get token
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: CREDENTIALS.username,
+                        password: CREDENTIALS.password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === true && data.data && data.data.token) {
+                    token = data.data.token;
+                } else {
+                    document.getElementById('dashboard-container').innerHTML = '<p style="color: #ff5555;">Authentication failed. Please login again.</p>';
+                    setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                    return;
+                }
+            } catch (error) {
+                document.getElementById('dashboard-container').innerHTML = '<p style="color: #ff5555;">Authentication error. Redirecting to login...</p>';
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                return;
+            }
+            
+            const dashboardContainer = document.getElementById('dashboard-container');
+            const dateFromInput = document.getElementById('dateFrom');
+            const dateToInput = document.getElementById('dateTo');
+            const fetchButton = document.getElementById('fetchSchedule');
+            const exportButton = document.getElementById('exportCsv');
+            const saveViewButton = document.getElementById('saveView');
+            const savedViewsDropdown = document.getElementById('savedViews');
+            const loadViewButton = document.getElementById('loadView');
+            const deleteViewButton = document.getElementById('deleteView');
+            const modal = document.getElementById('scheduleModal');
+            const closeModalBtn = document.querySelector('.close-btn');
+
+            let fullEmployeeData = [];
+            let currentHeaders = [];
+            let filterState = {};
+            let shiftOptions = [];
+            let shiftData = new Map();
+            let clickedScheduleDate = '';
+
+            const getFormattedDate = (date) => new Date(date.valueOf() + date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+            // --- Modal Logic ---
+            const openModal = (employeeId, employeeName, scheduleDate) => {
+                clickedScheduleDate = scheduleDate;
+                document.getElementById('modal-employee-name').textContent = employeeName;
+                document.getElementById('modal-employee-id').textContent = employeeId;
+                
+                const shiftDropdown = document.getElementById('shift-dropdown');
+                shiftDropdown.innerHTML = ''; // Clear existing options
+
+                if (shiftOptions.length > 0) {
+                    shiftOptions.forEach(shift => {
+                        const option = document.createElement('option');
+                        option.value = shift;
+                        option.textContent = shift;
+                        shiftDropdown.appendChild(option);
+                    });
+                } else {
+                    shiftDropdown.innerHTML = '<option value="">No shifts available</option>';
+                }
+                
+                modal.style.display = "block";
+            };
+
+            const closeModal = () => {
+                modal.style.display = "none";
+            };
+
+            closeModalBtn.onclick = closeModal;
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+            
+            document.getElementById('submit-shift-update').addEventListener('click', () => {
+                const employeeId = document.getElementById('modal-employee-id').textContent;
+                const employeeName = document.getElementById('modal-employee-name').textContent;
+                const newShift = document.getElementById('shift-dropdown').value;
+                const shiftId = shiftData.get(newShift);
+
+                if (!shiftId) {
+                    alert('Could not find ID for the selected shift.');
+                    return;
+                }
+
+                const payload = {
+                    Name: employeeName,
+                    employeeId: parseInt(employeeId),
+                    shiftId: shiftId,
+                    startDate: `${clickedScheduleDate} 00:00:00`,
+                    endDate: `${clickedScheduleDate} 00:00:00`
+                };
+
+                fetch('https://scheduling-api.s2s.ph/api/admin/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'wsc-token': token
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status) {
+                        alert('Shift updated successfully!');
+                        closeModal();
+                        refreshScheduleData(); // Refresh the data
+                    } else {
+                        alert(`Error updating shift: ${data.message || 'Unknown error'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating shift:', error);
+                    alert('An error occurred while updating the shift.');
+                });
+            });
+
+            const parseSqlData = (sql) => {
+                const lines = sql.split('\n');
+                const regex = /\((\d+),.*?, '(.+?)',/g;
+                lines.forEach(line => {
+                    let match;
+                    while ((match = regex.exec(line)) !== null) {
+                        const id = parseInt(match[1]);
+                        const code = match[2];
+                        shiftData.set(code, id);
+                    }
+                });
+            };
+
+            const fetchShifts = () => {
+                fetch('status_data.sql')
+                    .then(response => response.text())
+                    .then(text => {
+                        parseSqlData(text);
+                        shiftOptions = Array.from(shiftData.keys());
+                    });
+            };
+
+
+            const populateSavedViews = () => {
+                savedViewsDropdown.innerHTML = '<option value="">Select a view</option>';
+                const savedViews = Object.keys(localStorage)
+                    .filter(key => key.startsWith('savedView_'))
+                    .map(key => key.replace('savedView_', ''));
+
+                savedViews.forEach(viewName => {
+                    const option = document.createElement('option');
+                    option.value = viewName;
+                    option.textContent = viewName;
+                    savedViewsDropdown.appendChild(option);
+                });
+            };
+
+            const saveView = () => {
+                const viewName = prompt("Enter a name for this view:");
+                if (viewName && viewName.trim() !== '') {
+                    const serializableFilterState = {};
+                    for (const header in filterState) {
+                        serializableFilterState[header] = {
+                            active: filterState[header].active,
+                            selected: Array.from(filterState[header].selected)
+                        };
+                    }
+
+                    const viewData = {
+                        name: viewName,
+                        filters: serializableFilterState,
+                        headers: currentHeaders 
+                    };
+
+                    localStorage.setItem(`savedView_${viewName}`, JSON.stringify(viewData));
+                    populateSavedViews();
+                    alert(`View "${viewName}" saved.`);
+                } else if (viewName !== null) {
+                    alert("View name cannot be empty.");
+                }
+            };
+
+            const loadView = () => {
+                const viewName = savedViewsDropdown.value;
+                if (!viewName) {
+                    filterState = {};
+                    renderTable(fullEmployeeData, currentHeaders);
+                    return;
+                };
+                
+                const savedViewJSON = localStorage.getItem(`savedView_${viewName}`);
+
+                if (savedViewJSON) {
+                    const savedView = JSON.parse(savedViewJSON);
+                    
+                    filterState = {};
+                     for (const header in savedView.filters) {
+                        filterState[header] = {
+                            active: savedView.filters[header].active,
+                            selected: new Set(savedView.filters[header].selected)
+                        };
+                    }
+                    filterAndRender();
+                    alert(`View "${viewName}" loaded.`);
+                }
+            };
+            
+            const deleteView = () => {
+                const viewName = savedViewsDropdown.value;
+                if (viewName && confirm(`Are you sure you want to delete the view "${viewName}"?`)) {
+                    localStorage.removeItem(`savedView_${viewName}`);
+                    populateSavedViews();
+                    alert(`View "${viewName}" deleted.`);
+                }
+            };
+
+            const renderTable = (employees, headers) => {
+                const displayHeaders = [...headers];
+                let tableHTML = '<table><thead><tr>';
+                displayHeaders.forEach(header => {
+                    const isFilterable = ['Employee Name', 'Department', 'Designation'].includes(header);
+                    const filterKey = header.replace(/\s+/g, '-');
+                    const isActive = filterState[header] && filterState[header].active;
+                    tableHTML += `<th><div class="filter-wrapper">${header}`;
+                    if (isFilterable) {
+                        tableHTML += `<span class="filter-btn ${isActive ? 'active' : ''}" data-header="${header}">&#9662;</span><div id="${filterKey}-filter" class="filter-dropdown"></div>`;
+                    }
+                    tableHTML += `</div></th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                if (employees.length > 0) {
+                    employees.forEach(employee => {
+                        tableHTML += '<tr>';
+                        displayHeaders.forEach(header => {
+                            let value = '';
+                            let isSchedule = false;
+                            const summary = employee.summary || {};
+                            switch(header) {
+                                case 'Employee Name': value = employee.fullName; break;
+                                case 'Department': value = employee.department; break;
+                                case 'Designation': value = employee.designation; break;
+                                case 'Absent': value = summary.noOfAbsent; break;
+                                case 'Min Late': value = summary.noOfMinuteLate; break;
+                                case 'Hour Leave': value = summary.noOfHourLate; break;
+                                case 'Working Hours': value = summary.workingHours; break;
+                                case 'OT': value = summary.ot; break;
+                                case 'Holiday': value = summary.holiday; break;
+                                case 'Leave': value = summary.leave; break;
+                                default:
+                                    const schedule = employee.schedules ? employee.schedules.find(s => s.scheduleDateLabel === header) : null;
+                                    if (schedule) {
+                                        value = schedule.timeLabel;
+                                        isSchedule = true;
+                                    }
+                                    break;
+                            }
+                             const cellContent = value !== undefined && value !== null ? value : '';
+                             if (isSchedule) {
+                                tableHTML += `<td class="schedule-cell" data-employee-id="${employee.employeeId}" data-employee-name="${employee.fullName}" data-schedule-date="${header}">${cellContent}</td>`;
+                             } else {
+                                tableHTML += `<td>${cellContent}</td>`;
+                             }
+                        });
+                        tableHTML += '</tr>';
+                    });
+                }
+                tableHTML += '</tbody></table>';
+                dashboardContainer.innerHTML = tableHTML;
+
+                if (employees.length === 0 && fullEmployeeData.length > 0) {
+                    dashboardContainer.insertAdjacentHTML('beforeend', '<p>No data matches the current filters.</p>');
+                } else if (fullEmployeeData.length === 0) {
+                     dashboardContainer.innerHTML = '<p>No schedule data found for the selected date range.</p>';
+                }
+                
+                updateFilterDropdowns(employees);
+                initializeFilterButtons();
+                initializeCellClickListeners();
+            };
+            
+            const initializeCellClickListeners = () => {
+                document.querySelectorAll('.schedule-cell').forEach(cell => {
+                    cell.onclick = (e) => {
+                        const employeeId = e.target.dataset.employeeId;
+                        const employeeName = e.target.dataset.employeeName;
+                        const scheduleDate = e.target.dataset.scheduleDate;
+                        openModal(employeeId, employeeName, scheduleDate);
+                    };
+                });
+            };
+
+            const updateFilterDropdowns = (currentData) => {
+                 ['Employee Name', 'Department', 'Designation'].forEach(header => {
+                    const dropdown = document.querySelector(`.filter-btn[data-header="${header}"]`)?.nextElementSibling;
+                    if (!dropdown) return;
+                    
+                    const columnKey = header === 'Employee Name' ? 'fullName' : header.toLowerCase();
+                    const allPossibleValues = [...new Set(fullEmployeeData.map(e => e[columnKey]))].sort();
+
+                    const otherFiltersState = Object.fromEntries(Object.entries(filterState).filter(([key, _]) => key !== header));
+                    const availableData = fullEmployeeData.filter(employee => {
+                         return Object.entries(otherFiltersState).every(([h, s]) => {
+                            if (!s.active) return true;
+                             const key = h === 'Employee Name' ? 'fullName' : h.toLowerCase();
+                            return s.selected.has(employee[key]);
+                        });
+                    });
+                    const availableValues = new Set(availableData.map(e => e[columnKey]));
+
+                    let listHTML = `<input type="text" class="filter-dropdown-search" placeholder="Search...">
+                                    <ul class="filter-dropdown-list">
+                                        <li><label><input type="checkbox" class="select-all"> (Select All)</label></li>`;
+                    
+                    allPossibleValues.forEach(value => {
+                        const isChecked = !filterState[header] || !filterState[header].active || filterState[header].selected.has(value);
+                        const isDisabled = !availableValues.has(value);
+                        listHTML += `<li style="${isDisabled ? 'color: #777; cursor: not-allowed;': ''}">
+                                        <label>
+                                            <input type="checkbox" class="filter-item" value="${value}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}> 
+                                            ${value || '(Blank)'}
+                                        </label>
+                                     </li>`;
+                    });
+
+                    listHTML += `</ul><div class="filter-dropdown-actions"><button class="apply-filter">Apply</button></div>`;
+                    dropdown.innerHTML = listHTML;
+                });
+            };
+
+            const initializeFilterButtons = () => {
+                document.querySelectorAll('.filter-btn').forEach(button => {
+                    button.onclick = (e) => {
+                        e.stopPropagation();
+                        const dropdown = button.nextElementSibling;
+                        closeAllDropdowns(dropdown);
+                        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                        const searchBox = dropdown.querySelector('.filter-dropdown-search');
+                        if(searchBox) searchBox.focus();
+                    };
+                });
+
+                document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                    dropdown.onclick = (e) => e.stopPropagation();
+                    const header = dropdown.previousElementSibling.dataset.header;
+                    const applyBtn = dropdown.querySelector('.apply-filter');
+                    applyBtn.onclick = () => {
+                        const selectedValues = new Set();
+                        dropdown.querySelectorAll('.filter-item:checked').forEach(cb => {
+                            selectedValues.add(cb.value);
+                        });
+                        const allValues = new Set();
+                        dropdown.querySelectorAll('.filter-item').forEach(cb => {
+                           allValues.add(cb.value)
+                        });
+                        if(selectedValues.size === allValues.size){
+                             if(filterState[header]) filterState[header].active = false;
+                        } else {
+                            filterState[header] = { active: true, selected: selectedValues };
+                        }
+                        filterAndRender();
+                        closeAllDropdowns();
+                    };
+
+                    const selectAll = dropdown.querySelector('.select-all');
+                    selectAll.onchange = (e) => {
+                        dropdown.querySelectorAll('.filter-item:not([disabled])').forEach(cb => cb.checked = e.target.checked);
+                    };
+                    
+                    const searchBox = dropdown.querySelector('.filter-dropdown-search');
+                    searchBox.oninput = (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        dropdown.querySelectorAll('.filter-dropdown-list li').forEach(li => {
+                            if (li.querySelector('.select-all')) return;
+                            const label = li.querySelector('label').textContent;
+                            li.style.display = label.toLowerCase().includes(searchTerm) ? '' : 'none';
+                        });
+                    };
+                });
+            };
+
+            const closeAllDropdowns = (except = null) => {
+                document.querySelectorAll('.filter-dropdown').forEach(d => {
+                    if (d !== except) d.style.display = 'none';
+                });
+            };
+
+            const getFilteredData = () => {
+                return fullEmployeeData.filter(employee => {
+                    return Object.entries(filterState).every(([header, state]) => {
+                        if (!state.active) return true;
+                        const key = header === 'Employee Name' ? 'fullName' : header.toLowerCase();
+                        return state.selected.has(employee[key]);
+                    });
+                });
+            };
+
+            const filterAndRender = () => {
+                const filteredData = getFilteredData();
+                renderTable(filteredData, currentHeaders);
+            };
+            
+            const exportToCSV = () => {
+                const filteredData = getFilteredData();
+                if (filteredData.length === 0) {
+                    alert("No data to export.");
+                    return;
+                }
+
+                let csvContent = "";
+                csvContent += currentHeaders.join(',') + '\r\n';
+
+                filteredData.forEach(employee => {
+                    const row = currentHeaders.map(header => {
+                        let value = '';
+                        const summary = employee.summary || {};
+                        switch(header) {
+                            case 'Employee Name': value = employee.fullName; break;
+                            case 'Department': value = employee.department; break;
+                            case 'Designation': value = employee.designation; break;
+                            case 'Absent': value = summary.noOfAbsent; break;
+                            case 'Min Late': value = summary.noOfMinuteLate; break;
+                            case 'Hour Leave': value = summary.noOfHourLate; break;
+                            case 'Working Hours': value = summary.workingHours; break;
+                            case 'OT': value = summary.ot; break;
+                            case 'Holiday': value = summary.holiday; break;
+                            case 'Leave': value = summary.leave; break;
+                            default:
+                                const schedule = employee.schedules ? employee.schedules.find(s => s.scheduleDateLabel === header) : null;
+                                if (schedule) value = schedule.timeLabel;
+                                break;
+                        }
+                        let finalValue = value !== undefined && value !== null ? value.toString() : '';
+                        if (finalValue.includes(',')) {
+                            finalValue = `"${finalValue.replace(/"/g, '""')}"`;
+                        }
+                        return finalValue;
+                    });
+                    csvContent += row.join(',') + '\r\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "schedule_export.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const refreshScheduleData = () => {
+                if (!token) { dashboardContainer.innerHTML = '<p style="color: #ff5555;">Authentication token not found.</p>'; return; }
+                dashboardContainer.innerHTML = '<p>Refreshing schedule...</p>';
+                const fromDate = dateFromInput.value;
+                const toDate = dateToInput.value;
+                if (!fromDate || !toDate) { dashboardContainer.innerHTML = '<p style="color: #ffcc00;">Please select dates.</p>'; return; }
+
+                fetch(`https://scheduling-api.s2s.ph/api/admin/schedule?From=${fromDate}&To=${toDate}`, { headers: { 'Accept': 'application/json', 'Authorization': token, 'wsc-token': token } })
+                    .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP error! status: ${res.status}`)))
+                    .then(apiResponse => {
+                        fullEmployeeData = apiResponse.data.employees || [];
+                        currentHeaders = apiResponse.data.headers || [];
+                        filterAndRender(); // Re-apply existing filters
+                    })
+                    .catch(error => {
+                        console.error('Error refreshing schedule:', error);
+                        dashboardContainer.innerHTML = `<p style="color: #ff5555;">Failed to refresh schedule. ${error.message}</p>`;
+                    });
+            };
+
+            const fetchAndRenderSchedule = () => {
+                if (!token) { dashboardContainer.innerHTML = '<p style="color: #ff5555;">Authentication token not found.</p>'; return; }
+                dashboardContainer.innerHTML = '<p>Loading schedule...</p>';
+                const fromDate = dateFromInput.value;
+                const toDate = dateToInput.value;
+                if (!fromDate || !toDate) { dashboardContainer.innerHTML = '<p style="color: #ffcc00;">Please select dates.</p>'; return; }
+
+                fetch(`https://scheduling-api.s2s.ph/api/admin/schedule?From=${fromDate}&To=${toDate}`, { headers: { 'Accept': 'application/json', 'Authorization': token, 'wsc-token': token } })
+                    .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP error! status: ${res.status}`)))
+                    .then(apiResponse => {
+                        fullEmployeeData = apiResponse.data.employees || [];
+                        currentHeaders = apiResponse.data.headers || [];
+                        filterState = {}; 
+                        renderTable(fullEmployeeData, currentHeaders);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching schedule:', error);
+                        dashboardContainer.innerHTML = `<p style="color: #ff5555;">Failed to load schedule. ${error.message}</p>`;
+                    });
+            };
+
+            // --- Initial Setup & Event Listeners ---
+            const todayStr = getFormattedDate(new Date());
+            dateFromInput.value = todayStr;
+            dateToInput.value = todayStr;
+
+            fetchShifts(); // "Fetch" the shift data on load
+            populateSavedViews();
+            fetchAndRenderSchedule();
+
+            // Home button event listener
+            document.getElementById('homeBtn').addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+
+            fetchButton.addEventListener('click', fetchAndRenderSchedule);
+            exportButton.addEventListener('click', exportToCSV);
+            saveViewButton.addEventListener('click', saveView);
+            loadViewButton.addEventListener('click', loadView);
+            deleteViewButton.addEventListener('click', deleteView);
+            document.addEventListener('click', closeAllDropdowns);
+        });
+    </script>
+</body>
+</html>

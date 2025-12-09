@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2S Scheduling - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="terminal-container" id="loginContainer">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="btn-close"></span>
+                    <span class="btn-minimize"></span>
+                    <span class="btn-maximize"></span>
+                </div>
+                <div class="terminal-title">terminal - admin login</div>
+            </div>
+            <div class="terminal-body">
+                <div class="terminal-output">
+                    <p class="terminal-line">S2S Scheduling System v1.0</p>
+                    <p class="terminal-line">System: Authentication Required</p>
+                    <p class="terminal-line">─────────────────────────────────</p>
+                </div>
+                <form id="loginForm">
+                    <div class="terminal-prompt">
+                        <span class="prompt-symbol">$</span>
+                        <span class="prompt-text">Enter PIN code:</span>
+                        <input 
+                            type="password" 
+                            id="pin" 
+                            name="pin" 
+                            class="terminal-input"
+                            maxlength="4"
+                            required
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button type="submit" id="loginBtn" class="terminal-button">Login</button>
+                    <p id="error-message" class="terminal-message"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container" id="dashboardContainer" style="display: none;">
+        <div class="dashboard-header">
+            <h1>Employee Schedule Dashboard</h1>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-controls">
+                <input type="text" id="nameFilter" placeholder="Filter by name..." class="filter-input">
+                <input type="text" id="designationFilter" placeholder="Filter by designation..." class="filter-input">
+                <button id="clearFilters" class="filter-btn">Clear Filters</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="employeeTable">
+                <thead id="tableHeader"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
